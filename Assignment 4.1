@@ -1,0 +1,155 @@
+/*
+Name: [DATA REDACTED]
+UID: [DATA REDACTED]
+Filename: ███.cpp
+Last modified: ████████████
+Description: Open the txt file, find all three consecutive words starting with ‘w’, ‘t’ and ‘f’
+             (ignore cases) respectively and replace them (together with any spaces or punctuation
+             marks between those words) by “WTF”.
+*/
+
+
+#include <iostream>
+#include <string>
+#include <fstream>
+
+using namespace std;
+
+// To examine if the first character of input string is letter or number.
+bool IsLetter(string SingleLetter)
+{
+    if(SingleLetter > "A" && SingleLetter < "Z" || SingleLetter > "a" && SingleLetter < "z" || SingleLetter >= "0" && SingleLetter <= "9")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+int main()
+{
+    // Open the txt file and put the content in string Input.
+    ifstream Content;
+    Content.open("input.txt");
+    string Input;
+    getline(Content, Input);
+
+    // Put all positions of separated letters in the array to prepare for the function of substring.
+    int Temp[100];
+    int j = 0, k = 0;
+    int length = Input.length();
+    for (j = 0; j < length; j++)
+    {
+        string SingleLetter = Input.substr(j);
+        if(IsLetter(SingleLetter) == true)
+        {
+            Temp[k] = j;
+            k++;
+        }
+    }
+
+    // To deal with possible symbols (like "!" and "?" followed after the last string of output)
+    string LastSymbol = Input.substr(Temp[k - 1] + 1);
+
+    // To split the input string to many substrings word by word and store in them the array
+    int i = 0;
+    string Split[100];
+    int ForSplit = 0;
+    int CountSpilt = 0;
+
+    while (i < k)
+    {
+        if(Temp[i + 1] - Temp[i] != 1)
+        {
+            Split[CountSpilt] = Input.substr(Temp[ForSplit], Temp[i+1]-Temp[ForSplit]);
+            CountSpilt++;
+            i = i + 1;
+            ForSplit = i;
+
+        }
+        else
+        {
+            i = i + 1;
+        }
+    }
+
+    //To exchange the required strings to "W", "T" and "F", but if the string of "F" is the last word of input, the followed symbols will not be changed.
+    for(i = 0;i <= k; i++)
+    {
+        if (Split[i][0] == 'W' || Split[i][0] == 'w')
+        {
+            if (Split[i + 1][0] == 'T' || Split[i + 1][0] == 't')
+            {
+                if (Split[i + 2][0] == 'F' || Split[i + 2][0] == 'f')
+                {
+
+                    Split[i] = "W";
+                    Split[i + 1] = "T";
+
+                    int LengthOfLetters = Split[i + 2].length();
+                    string WordWithF = Split[i + 2];
+                    int cnt = 0;
+
+                    while(WordWithF.length() >= 1)
+                    {
+                        if (IsLetter(WordWithF.substr(0,1)))
+                        {
+                            WordWithF = WordWithF.substr(1);
+                        }
+                        else
+                        {
+                            cnt++;
+                            WordWithF = WordWithF.substr(1);
+                        }
+                    }
+
+                    string LastLetter = Split[i + 2].substr(LengthOfLetters - cnt);
+
+                    if(LastLetter == Split[i+2])
+                    {
+                        Split[i + 2] = "F";
+                    }
+                    else
+                    {
+                        Split[i + 2] = "F" + LastLetter;
+                    }
+                }
+            }
+        }
+    }
+
+    // To connect the strings to make the final output and output the result of programme to the txt file.
+    string output;
+    string SplitWithSpace[100];
+
+    for(i = 0; i < k + 1; i++)
+    {
+        int LengthOfLast = Split[i + 2].length();
+
+        if (Split[i] +  Split[i + 1] + Split[i + 2] != "WTF" && Split[i] +  Split[i + 1] + Split[i + 2].substr(0, LengthOfLast - 1) != "WTF")
+        {
+            output = output + Split[i];
+        }
+        else
+        {
+            output = output + Split[i] + Split[i + 1] + Split[i + 2];
+            i = i + 2;
+        }
+    }
+
+    ofstream result;
+    result.open("output.txt");
+
+    if(output == "")
+    {
+        output = Input;
+    }
+
+    result << output << endl;
+
+    result.close();
+
+    return 0;
+}
