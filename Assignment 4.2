@@ -1,0 +1,408 @@
+/*
+Name: [DATA REDACTED]
+UID: [DATA REDACTED]
+Filename: ████████.cpp
+Last modified: ████████████
+Description: The programme could open a file, load its contents, and make multiple operations
+             including searching records, calling numbers, adding and removing contents. The
+             new contents after all operation will be stored in a new txt file.
+             "struct" is not used since string is enough to handle all process.
+*/
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+//Yes, a global variable to tackle the process when the order is "Add" something.
+int Exist = 0;
+
+//To decide whether the content of the string input is a letter.
+bool IsLetter(string Letter)
+{
+    if(Letter > "A" && Letter < "Z" || Letter > "a" && Letter < "z")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+//To decide whether the content of the string input is a number.
+bool IsNumber(string Letter)
+{
+    if(Letter >= "0" && Letter < "9")
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+
+}
+
+/*
+    A major part of the program, it will focus on operating the input and output content which depends on the input and "OutputType".
+*/
+void FindName (string Input, string Name[], string Number[], string Address[], int& Split, int OutputType)
+{
+    // Order "Add" is more troublesome than others and it has own string format of input, which needs extra operation.
+    if(OutputType == 2)
+    {
+        int SpaceOne = Input.find(" ", 0);
+        int SpaceTwo = Input.find(" ", SpaceOne + 1);
+        Input = Input.substr(SpaceOne + 1, SpaceTwo - SpaceOne - 1);
+    }
+
+    // This part is to examine whether the input has some same or similar elements in the existing array.
+    int Cnt = 0, CountCnt = 0;
+    int x = 0, y = 0;
+    int Found = 0;
+    for(x = 0; x < Split + 1; x++)
+    {
+        for (Cnt = 0; Cnt < min(Input.length(), Name[x].length()) ; Cnt++)
+        {
+            if(toupper(Name[x][Cnt]) == toupper(Input[Cnt]))
+            {
+                CountCnt++;
+            }
+        }
+
+        // Variable "Found" is used to see whether the status is existing same parameter, existing similar parameter or no such content in existing array.
+        // Variable y is used to store some value of x, which means the critical position in the array.
+        if(CountCnt == max(Name[x].length(), Input.length()))
+        {
+            Found = 2;
+            y = x;
+            break;
+        }
+        else if(CountCnt == Name[x].length() - 1)
+        {
+            Found = 1;
+            y = x;
+        }
+        CountCnt = 0;
+    }
+
+    // Actually Switch() could also be used here.
+    // When "Found" is 2, the mean is there are some element in the array that exactly same with the input.
+    if(Found == 2)
+    {
+        // 0 is for normal output, 1 for Calling, 2 for Add, 3 for Removing.
+        if (OutputType == 0)
+        {
+            cout << Name[y] + " " + Number[y] + " " + Address[y] << endl;
+        }
+        if (OutputType == 1)
+        {
+            cout << "Calling " + Number[y] + "..." << endl;
+        }
+        if (OutputType == 2)
+        {
+            Exist = 1;
+        }
+        if (OutputType == 3)
+        {
+            cout << Name[y] << " removed." << endl;
+            while (y < Split)
+            {
+                Name[y] = Name[y+1];
+                Number[y] = Number[y+1];
+                Address[y] = Address[y+1];
+                y++;
+            }
+                Name[y] = "";
+                Number[y] = "";
+                Address[y] = "";
+                Split--;
+        }
+    }
+
+    // When "Found" is 1, the mean is there are some element in the array that similar with the input.
+    if (Found == 1)
+    {
+        if (OutputType == 0 || OutputType == 1 )
+        {
+            cout << Input + " not found! Do you mean " + Name[y] + "?" << endl;
+        }
+        if (OutputType == 2)
+        {
+            Exist = 2;
+        }
+        if (OutputType == 3)
+        {
+            cout << Input + " not found! Do you mean " + Name[y] + "?" << endl;
+        }
+    }
+
+    // When "Found" is 0, the mean is there no elements in the array same or similar with the input.
+    if (Found == 0)
+    {
+        if (OutputType == 2)
+        {
+            Exist = 2;
+        }
+        else
+        {
+            cout << Input + " not found!" << endl;
+        }
+    }
+}
+
+// Function FindName actually does more than FindNumber, and their codes are similar, except FindNumber focus on numbers input.
+void FindNumber (string Input, string Name[], string Number[], string Address[], int Split, int OutputType)
+{
+    int Cnt = 0, CountCnt = 0;
+    int x = 0, y = 0;
+    int Found = 0;
+
+    // Process of Adding also needs extra operations.
+    if(OutputType == 2)
+    {
+        int SpaceOne = Input.find(" ", 0);
+        int SpaceTwo = Input.find(" ", SpaceOne + 1);
+        int SpaceThree = Input.find (" ", SpaceTwo + 1);
+        Input = Input.substr(SpaceTwo + 1, SpaceThree - SpaceTwo - 1);
+    }
+
+    // Similar to the part in FindName.
+    for(x = 0; x < Split + 1; x++)
+    {
+        for (Cnt = 0; Cnt < min(Input.length(), Number[x].length()); Cnt++)
+        {
+            if(Number[x][Cnt] == Input[Cnt])
+            {
+                CountCnt++;
+            }
+        }
+
+        if(CountCnt == Number[x].length())
+        {
+            Found = 2;
+            y = x;
+            break;
+        }
+        else if(CountCnt == Number[x].length() - 1)
+        {
+            Found = 1;
+            y = x;
+        }
+        CountCnt = 0;
+    }
+
+    // Also similar to the part in FindName.
+    if(Found == 2)
+    {
+        if (OutputType == 3)
+        {
+            cout << Name[y] << " removed." << endl;
+
+            while (y < Split)
+            {
+                Name[y] = Name[y+1];
+                Number[y] = Number[y+1];
+                Address[y] = Address[y+1];
+                y++;
+            }
+                Name[y] = "";
+                Number[y] = "";
+                Address[y] = "";
+                Split--;
+        }
+        if (OutputType == 2)
+        {
+            if (Input.length() == Number[y].length())
+            {
+                Exist = 1;
+            }
+            else
+            {
+                Exist = 2;
+            }
+        }
+        else
+        {
+            cout << Name[y] + " " + Number[y] + " " + Address[y] << endl;
+        }
+    }
+    if (Found == 1)
+    {
+        if (OutputType == 2)
+        {
+            Exist = 0;
+        }
+        else
+        {
+            cout << Input + " not found! Do you mean " + Number[y] + "?" << endl;
+        }
+    }
+
+    if (Found == 0)
+    {
+        if (OutputType == 2)
+        {
+            Exist = 0;
+        }
+        else
+        {
+            cout << Input + " not found!" << endl;
+        }
+    }
+}
+
+
+//The main function, system will detect the first word in the input message(i.e. Call, Find, Add...) to decide what function to call.
+int main()
+{
+    ifstream Content;
+    Content.open("contacts.txt");
+
+    // Since the whole txt file will contain less than 100 lines, an array of 100 elements is enough to put all information separately in.
+    // i.e. Name[0] is "Tom", Number[0] is "56732345", and "Address[0]" is "Central_Luk_Building".
+    int FirstSpace[100], SecondSpace[100];
+    string Name[100], Number[100], Address[100];
+    int Split = 0, Original = 0;
+    string PersonInfo[100];
+    while (getline(Content, PersonInfo[Original]))
+    {
+        FirstSpace[Original] = PersonInfo[Original].find(" ", 0);
+        SecondSpace[Original] = PersonInfo[Original].find(" ", FirstSpace[Original] + 1);
+
+        Name[Split] = PersonInfo[Original].substr(0, FirstSpace[Original]);
+        Number[Split] = PersonInfo[Original].substr(FirstSpace[Original] + 1, SecondSpace[Original] - FirstSpace[Original] - 1);
+        Address[Split] = PersonInfo[Original].substr(SecondSpace[Original] + 1);
+
+        Original++;
+        Split++;
+    }
+    Split = Split - 1;
+
+    /*
+    "OutputType" is an important variable that used to decide what action should the called function do.
+    For example, FindName() may need to return "<Name> exists" when input is "Add XXX", when "OutputType" is 2.
+    However, it needs to return "<Name> removed." when input is "Remove XXX", and "OutputType" is 3.
+    If input is "Exit", "OutputType" would be 5, which will end the while loop after a set of final operations.
+    */
+    int OutputType;
+    while (OutputType != 5)
+    {
+        string Input;
+        getline(cin, Input);
+
+        /*
+        Calling function FindName or FindNumber with "OutputType" = 0.
+        Functions IsLetter and IsNumber is used to decide which void function should be called.
+        */
+        if(Input.find("Find") == 0)
+        {
+            OutputType = 0;
+
+            if(IsLetter(Input.substr(5,1)) == true)
+            {
+                FindName(Input.substr(5), Name, Number, Address, Split, OutputType);
+            }
+            else if (IsNumber(Input.substr(5,1)) == true)
+            {
+                FindNumber(Input.substr(5), Name, Number, Address, Split, OutputType);
+            }
+        }
+
+        /*
+        Calling function FindName or FindNumber with "OutputType" = 1.
+        Functions IsLetter and IsNumber is used to decide which void function should be called.
+        */
+        if(Input.find("Call") == 0)
+        {
+            OutputType = 1;
+
+            if(IsLetter(Input.substr(5,1)) == true)
+            {
+                FindName(Input.substr(5), Name, Number, Address, Split, OutputType);
+            }
+            else if (IsNumber(Input.substr(5,1)) == true)
+            {
+                cout << "Calling " + Input.substr(5) + "..." << endl;;
+            }
+        }
+
+        /*
+        Calling function FindName and FindNumber with "OutputType" = 2.
+        The input will be segmented and "MayName", "MayNumber" and "MayAddress" store the string that may added into the file.
+        */
+        if(Input.find("Add") == 0)
+        {
+            OutputType = 2;
+
+            string Part = Input.substr(4);
+            int SpaceOne = Part.find(" ", 0);
+            int SpaceTwo = Part.find(" ", SpaceOne + 1);
+            int SpaceThree = Part.find (" ", SpaceTwo + 1);
+
+            string MayName = Part.substr(0, SpaceOne);
+            string MayNumber = Part.substr(SpaceOne + 1, SpaceTwo - SpaceOne - 1);
+            string MayAddress = Part.substr(SpaceTwo + 1);
+
+            FindName(Input, Name, Number, Address, Split, OutputType);
+
+            //"Exist" is used to decide whether functions FindName and FindNumber should both be called.
+            //It also decides whether the input name or number already exists.
+            if (Exist == 1)
+            {
+                cout << MayName << " already exists!" << endl;
+
+            }
+            else if (Exist == 2)
+            {
+                FindNumber(Input, Name, Number, Address, Split, OutputType);
+                if (Exist == 1)
+                {
+                    cout << MayNumber << " already exists!" << endl;
+                }
+                else
+                {
+                    Name[Split + 1] = MayName;
+                    Number[Split + 1] = MayNumber;
+                    Address[Split + 1] = MayAddress;
+                    Split++;
+                    cout << MayName << " added."<< endl;
+                }
+            }
+        }
+
+        // When calling FindName or FindNumber with "OutputType" being 3, they will find and delete concerning parameter in array.
+        if(Input.find("Remove") == 0)
+        {
+            OutputType = 3;
+            if(IsLetter(Input.substr(7,1)) == true)
+            {
+                FindName(Input.substr(7), Name, Number, Address, Split, OutputType);
+            }
+            else if (IsNumber(Input.substr(7,1)) == true)
+            {
+                FindNumber(Input.substr(7), Name, Number, Address, Split, OutputType);
+            }
+        }
+
+        // Final order which will terminate the program and create a new txt file.
+        if(Input.find("Exit") == 0)
+        {
+            OutputType = 5;
+            ofstream result;
+            result.open("new_contacts.txt");
+            string output;
+
+            for (int i = 0; i < Split + 1; i++)
+            {
+                output = Name[i] + " " + Number[i] + " " + Address[i] + "\n";
+                result << output;
+            }
+            result.close();
+        }
+    }
+    return 0;
+}
