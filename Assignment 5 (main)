@@ -1,0 +1,275 @@
+/*
+Name: [DATA REDACTED]
+UID: ███████████
+Filename: █████████.cpp
+Last modified: ████████████
+
+Description:
+The programme will
+1) open "students.txt", read and store each student's name and number
+2) open "problems.txt", read and store each problem's type and answer
+3) read students' answers for problems
+4) examine the answers and calculate each student's score
+5) set students' ranks
+6) output the result to "ranking.txt"
+
+P.S. May I recommend some special test cases? Like students with scores of "20, 16, 16, 16, 14, 14, 0".
+*/
+
+#include <iostream>
+#include "grading.h"
+#include <fstream>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+//The global variables are defined at very beginning to avoid potential error.
+// An array to store all students
+Student students[50];
+// The number of students
+int num_students;
+// An array to store all problems
+Problem problems[50];
+// The number of problems
+int num_problems;
+
+
+// Read one line of "students.txt" and get the name and number of one student
+void Student::readNameAndNumber(std::istream &input)
+{
+    input >> name >> number;
+}
+
+// Read one line of "problems.txt" and get the type and standard answer of one problem
+void Problem::readTypeAndAnswer(std::istream &input)
+{
+    // Store problem's type, different type will drive to different process
+    input >> type;
+
+    // Type of short questions needs extra array to store the keywords
+    if (type == "S")
+    {
+        input >> num_keywords;
+        for (int k = 0; k < num_keywords; k++)
+        {
+            input >> keywords[k];
+        }
+    }
+
+    // Multiple choice questions and fill in blanks only need to store standard answer
+    if (type == "M")
+    {
+        input >> standard_answer;
+    }
+    if (type == "F")
+    {
+        input >> standard_answer;
+    }
+}
+
+// Read the file "<student number>.txt" and get all the answers of this student
+void Student::readAnswers(int num_problems)
+{
+    // "txtName" is for opening the corresponding file
+    string txtName;
+    txtName = number + ".txt";
+
+    // Convert string to char* and open the txt file
+    ifstream if_answers;
+	if_answers.open(txtName.c_str());
+
+	// Read answers and put into the array
+	int i = 0;
+	while (getline(if_answers, answers[i]))
+    {
+		i++;
+    }
+	if_answers.close();
+}
+
+// Return a score according to the student answer
+int Problem::grade(std::string student_answer)
+{
+    // Although it is not required, letter cases are ignored when examining answers of MC
+    if (type == "M")
+    {
+        if(toupper(student_answer[0]) == toupper(standard_answer[0]))
+        {
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    // Ignore letter cases by converting all to capital letters. The algorithm is similar to the "contacts.cpp" in Assignment 4.
+    // If each letters in student's answer and standard answer are equal, it would be correct and return 2 points.
+    if (type == "F")
+    {
+        int same = 0, x = 0;
+        for (x = 0; x < min(student_answer.length(), standard_answer.length()); x++)
+        {
+            if(toupper(standard_answer[x]) == toupper(student_answer[x]))
+            {
+                same++;
+            }
+        }
+
+        if(same == standard_answer.length() && student_answer.length() == standard_answer.length())
+        {
+            return 2;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    // Ignore cases by converting all to capital letters first.
+    // Then check if the keywords appears in student's answers by function find().
+    if (type == "S")
+    {
+        int tempScore = 0, upper = 0, j = 0, k = 0;
+
+        //Process of converting to capital letters
+        for (j = 0; j < num_keywords; j++)
+        {
+            for (upper= 0; upper < keywords[j].length(); upper++)
+            {
+                keywords[j][upper] = toupper(keywords[j][upper]);
+            }
+        }
+        for (k = 0; k < student_answer.length(); k++)
+        {
+            student_answer[k] = toupper(student_answer[k]);
+
+        }
+
+        // "tempScore" represents the number of keywords found in answer
+        for (int i = 0; i < num_keywords; i++)
+        {
+            if (student_answer.find(keywords[i]) != -1)
+            {
+                tempScore++;
+            }
+        }
+        return tempScore;
+    }
+}
+
+// Return the total score of the student
+int Student::getScore()
+{
+    return total_score;
+}
+
+// Set the rank of the student to r
+void Student::setRank(int r)
+{
+    rank = r;
+
+    cout << "total score for " << name << ": " << total_score << endl;
+    cout << "rank for " << name << ": " << r << endl;
+}
+
+// A function to swap two Student objects
+void swap(Student &a, Student &b)
+{
+    Student temp;
+    temp = a;
+    a = b;
+    b = temp;
+}
+
+// Sort records of students by rank, it is neither included in class nor be friend functions.
+// Thus, it will call other functions to help processing.
+void sortByScore()
+{
+    // Main process of sorting, with reference to "Employee.cpp" in workshop 8.
+    for (int i = num_students - 1; i > 0; i--)
+    {
+        int m = 0;
+        // find the min-index m of array[0..i];
+        for (int j = 1; j <= i; j++)
+        {
+            if (students[m].getScore() > students[j].getScore())
+            {
+                m = j;
+            }
+        }
+
+        // Function to swap records;
+        if (m != i)
+        {
+            swap(students[m], students[i]);
+        }
+    }
+
+    // Set the rank, if two or more students have same grade, they will have same rank.
+    // For example, scores of 10, 8, 8, 8, 6, 6, 4 will have ranks of 1, 2, 2, 2, 5, 5, 7.
+    int sameRank = 0;
+    students[0].setRank(1);
+    for (int k = 1; k < num_students; k++)
+    {
+        // "sameRank" is used when students have same scores, thus their ranks will be equal.
+        sameRank++;
+        if (students[k].getScore() == students[k - 1].getScore())
+        {
+            students[k].setRank(sameRank);
+            sameRank--;
+        }
+        else
+        {
+            students[k].setRank(k + 1);
+            sameRank = k;
+        }
+    }
+}
+
+// Output to "ranking.txt" with format of "<rank> <name> <number> <points>", one space between objects.
+void Student::write(std::ostream &output)
+{
+    output << rank << " " << name << " " << number << " " << total_score << " " << endl;
+}
+
+int main(void)
+{
+	int i;
+	// Read students' names and numbers from "studnets.txt"
+	ifstream if_students;
+	if_students.open("students.txt");
+	if_students >> num_students;
+	for (i = 0; i < num_students; i++)
+		students[i].readNameAndNumber(if_students);
+	if_students.close();
+
+	// Read problem specifications from "problems.txt"
+	ifstream if_problems;
+	if_problems.open("problems.txt");
+	if_problems >> num_problems;
+	for (i = 0; i < num_problems; i++)
+		problems[i].readTypeAndAnswer(if_problems);
+	if_problems.close();
+
+	// Read students' answers from "<student number>.txt"
+	for (i = 0; i < num_students; i++)
+		students[i].readAnswers(num_problems);
+
+	// Calculate scores of students
+	for (i = 0; i < num_students; i++)
+		students[i].calculateScore(problems, num_problems);
+
+	// Sort the students, and calculate the ranks
+	sortByScore();
+
+	// Output sorted list of students to "ranking.txt"
+	ofstream of_students;
+	of_students.open("ranking.txt");
+	for (i = 0; i < num_students; i++)
+		students[i].write(of_students);
+	of_students.close();
+
+	return 0;
+}
