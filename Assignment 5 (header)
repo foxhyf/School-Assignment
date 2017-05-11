@@ -1,0 +1,83 @@
+#ifndef GRADING_H
+#define GRADING_H
+// Above two lines are for avoiding error of multiple inclusion of the same header file
+
+#include <iostream>
+#include <string>
+
+// Implement member functions of this class
+class Problem
+{
+public:
+	// Read one line of "problems.txt" and get the type and standard answer of one problem
+	// The parameter "input" can be used the same way as cin or an object of ifstream
+	void readTypeAndAnswer(std::istream &input);
+	// Return a score according to the student answer
+	// using type and standard answer
+	int grade(std::string student_answer);
+
+private:
+	std::string type;
+	std::string standard_answer;
+	std::string keywords[10];
+	int num_keywords;
+};
+
+// Implement member functions of this class
+class Student
+{
+public:
+	// Read one line of "students.txt" and get the name and number of one student
+	// The parameter "input" can be used the same way as cin or an object of ifstream
+	void readNameAndNumber(std::istream &input);
+	// Read the file "<student number>.txt" and get all the answers of this student
+	void readAnswers(int num_problems);
+	// Write "<rank> <name> <number> <points>" on one line of "ranking.txt"
+	// The parameter "output" can be used the same way as cout or an object of ofstream
+	void write(std::ostream &output);
+	// Return the total score of this student
+	int getScore();
+	// Set the rank of the student to r
+	void setRank(int r);
+
+	// Calculate the score of this student from a given list of problems
+	// It is defined here, you do not redefine this function in your grading.cpp
+	void calculateScore(Problem p[], int n)
+	{
+		total_score = 0;
+		for (int i = 0; i < n; i++)
+		{
+			score[i] = p[i].grade(answers[i]);
+			total_score += score[i];
+		}
+	}
+
+	// Optional: you may define a function to swap two Student objects, which may help sorting
+	friend void swap(Student &a, Student &b);
+
+private:
+	// Name and student number, assigned by readNameAndNumber
+	std::string name;
+	std::string number;
+	// Answers to each question, assigned by readAnswers
+	std::string answers[50];
+	// Assigned by calculateScore
+	int score[50];
+	int total_score;
+	// Assigned by sortByScore
+	int rank;
+};
+
+// Below forbids you from using std::sort
+namespace std
+{
+	template <class A>
+	void sort(A, A)
+	{}
+	template <class A, class T>
+	void sort(A, A, T)
+	{}
+}
+
+// Following line is for avoiding error of multiple inclusion of the same header file
+#endif
