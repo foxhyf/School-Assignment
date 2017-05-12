@@ -1,0 +1,212 @@
+// Name: [DATA REDACTED]
+// UID: [DATA REDACTED]
+// Filename: ████████████.cpp
+// Last modified: ████████████
+// Description: The program reads date input and outputs the day of the week that corresponds to that date.
+// P.S. The input is string type and be converted to int type via function getInput and library sstream. The assumption is that all input is valid.
+
+#include <iostream>
+#include <sstream>
+#include <string>
+
+using namespace std;
+
+// To prompts the user for the date and returns the month, day, and year.
+void getInput(string& date, int& day, int& month, int& year)
+{
+    // To ensure the position of commas in the string to split the string easier.
+    int FirstComma = date.find(",", 0);
+    int SecondComma = date.find(",", 3);
+
+    // As the string input is "MM,DD,YYYY", following process will extract and save them separately.
+    string FindMonth = date.substr(0,FirstComma);
+    string FindDay = date.substr(FirstComma + 1, SecondComma - FirstComma - 1);
+    string FindYear = date.substr(SecondComma + 1);
+
+    // To convert the string type into int via library sstream. For three variables, there is no much needs to use clear().
+    istringstream temp1(FindMonth);
+    istringstream temp2(FindDay);
+    istringstream temp3(FindYear);
+    temp1 >> month;
+    temp2 >> day;
+    temp3 >> year;
+}
+
+// To find if the year input is leap year and the result will be used in other functions.
+bool isLeapYear(int year)
+{
+    if(year % 400 == 0)
+    {
+        return true;
+    }
+    else
+    {
+        if(year % 4 == 0 && year % 100 != 0)
+        {
+            return true;
+        }
+        else
+            return false;
+    }
+}
+
+// Take the first two digits of the year, and then calculate and return the CenturyValue.
+int getCenturyValue(int year)
+{
+    int TempCentury = (year / 100) % 4 ;
+    int Century = (3 - TempCentury) * 2;
+    return Century;
+}
+
+// Take the last two digits of the year, and then calculate and return the YearValue.
+int getYearValue(int year)
+{
+    int TempYearValue = year % 100;
+    int YearValue = TempYearValue + TempYearValue / 4;
+    return YearValue;
+}
+
+// Read the month and year from input, then calculate and return MonthValue together with deciding whether the year is leap year.
+// Function switch is used to have better indentation.
+int getMonthValue(int month, int year)
+{
+    int MonthValue;
+    switch(month)
+    {
+        case 1:
+            {
+                if(isLeapYear(year))
+                {
+                    MonthValue = 6;
+                }
+                else
+                {
+                    MonthValue = 0;
+                }
+                break;
+            }
+        case 2:
+            {
+                if(isLeapYear(year))
+                {
+                    MonthValue = 2;
+            }
+                else
+                {
+                    MonthValue = 3;
+                }
+                break;
+            }
+        case 3:
+            {
+                MonthValue = 3;
+                break;
+            }
+        case 4:
+            {
+                MonthValue = 6;
+                break;
+            }
+        case 5:
+            {
+                MonthValue = 1;
+                break;
+            }
+        case 6:
+            {
+                MonthValue = 4;
+                break;
+            }
+        case 7:
+            {
+                MonthValue = 6;
+                break;
+            }
+        case 8:
+            {
+                MonthValue = 2;
+                break;
+            }
+        case 9:
+            {
+                MonthValue = 5;
+                break;
+            }
+        case 10:
+            {
+                MonthValue = 0;
+                break;
+            }
+        case 11:
+            {
+                MonthValue = 3;
+                break;
+            }
+        case 12:
+            {
+                MonthValue = 5;
+                break;
+            }
+    }
+    return MonthValue;
+}
+
+// The main part of the program.
+int main()
+{
+    // To input the date in string type to handle the commas in it.
+    string date;
+    cin >> date;
+
+    // If there is spacing in the input, function below could be used to read and eliminate the spacing in input.
+    // getline(cin,date);
+    // date = date.replace(date.find(" "), 1, "");
+    // date = date.replace(date.find(" "), 1, "");
+
+    int day = 0, month = 0, year = 0;
+    getInput(date, day, month, year);
+
+    // To calculate the Finalnumber to output the final result. Function switch is used.
+    int FinalNumber = (day + getCenturyValue(year) + getYearValue(year) + getMonthValue(month, year)) % 7;
+    switch(FinalNumber)
+    {
+        case 1:
+            {
+                cout << "Monday" << endl;
+                break;
+            }
+        case 2:
+            {
+                cout << "Tuesday" << endl;
+                break;
+            }
+        case 3:
+            {
+                cout << "Wednesday" << endl;
+                break;
+            }
+        case 4:
+            {
+                cout << "Thursday" << endl;
+                break;
+            }
+        case 5:
+            {
+                cout << "Friday" << endl;
+                break;
+            }
+        case 6:
+            {
+                cout << "Saturday" << endl;
+                break;
+            }
+        case 0:
+            {
+                cout << "Sunday" << endl;
+                break;
+            }
+    }
+    return 0;
+}
+
+
